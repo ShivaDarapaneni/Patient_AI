@@ -1,77 +1,120 @@
-from arango import ArangoClient
-from langchain_community.graphs import ArangoGraph
-from langchain.chains import ArangoGraphQAChain
-from langchain_groq import ChatGroq
-import re
-from langchain_core.tools import tool
-import networkx as nx
-import json 
+
+#Standard Library (Built-in Python modules)
 import os
-import matplotlib.pyplot as plt  # For visualization
+import re
 import textwrap
-import plotly
+from typing import Optional
+
+#Data Processing & Visualization
+import networkx as nx
+import matplotlib.pyplot as plt
+
+#Database & Graph Management
+from arango import ArangoClient
+from langchain.chains import ArangoGraphQAChain
+from langchain_community.graphs import ArangoGraph
+
+# AI & NLP (Natural Language Processing)
 from groq import Groq
-from flask import Flask, render_template, request, jsonify
-# Initialize Flask app
+from langchain_groq import ChatGroq
+
+#Web Framework
+from flask import Flask, render_template, request
+
+
+# =====================================
+#  Flask Application Initialization
+# =====================================
+"""
+This section initializes the Flask application, which serves as the web interface
+for interacting with the ArangoDB database and performing queries.
+"""
 app = Flask(__name__)
 
-# Set GROQ API key
-os.environ["GROQ_API_KEY"] = "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"
 
-# Initialize the ArangoDB client and connect to the database
-clien = ArangoClient(hosts='http://localhost:8529')
-db = clien.db('_system', username='root', password='')
-
-# Instantiate the ArangoDB-LangChain Graph
-arango_graph = ArangoGraph(db)
-
-client = Groq(
-    api_key=os.environ.get("GROQ_API_KEY"),  # This is the default and can be omitted
-)
-
-# Tool 1: Translate text to AQL and back to text
-@tool
-def text_to_aql_to_text(query: str):
-    """This tool is available to invoke the
-    ArangoGraphQAChain object, which enables you to
-    translate a Natural Language Query into AQL, execute
-    the query, and translate the result back into Natural Language.
-    """
-    llm = ChatGroq(temperature=0, model_name="qwen-2.5-32b")
-    chain = ArangoGraphQAChain.from_llm(
-        llm=llm,
-        graph=arango_graph,
-        verbose=True,
-        allow_dangerous_requests=True
-    )
-    result = chain.invoke(query)
-    return str(result["result"])
-
-# Tool 2: Translate text to AQL, build a NetworkX graph, run an algorithm, and visualize
-@tool
-def text_to_aql_to_nxalgorithm(query: str):
-    """This tool takes a natural language query, generates a sample graph (nodes and edges)
-    based on the query context, builds a NetworkX graph, runs an algorithm, and returns
-    the raw result (FINAL_RESULT).
-    """
-    
-    graph_prompt = f"""This tool is available to invoke the
-    ArangoGraphQAChain object, which enables you to
-    translate a Natural Language Query into AQL, execute
-    the query : {query}, and translate the result back into Natural Language.
-    """
-    llm = ChatGroq(temperature=0, model_name="qwen-2.5-32b")
-    chain = ArangoGraphQAChain.from_llm(
-        llm=llm,
-        graph=arango_graph,
-        verbose=True,
-        allow_dangerous_requests=True
-    )
-    result = chain.invoke(query)
-    result = str(result["result"])
+# =====================================
+#  Environment Variables
+# =====================================
+"""
+This section sets up environment variables, such as the GROQ API key,
+which is required for interacting with the Groq API for natural language processing.
+"""
+os.environ["GROQ_API_KEY"] = "your_api_key_here"
 
 
-    chat_completion = client.chat.completions.create(
+# =====================================
+#  Database Connection (ArangoDB)
+# =====================================
+"""
+This section establishes a connection to the ArangoDB database.
+It initializes the ArangoGraph object, which is used to interact with the database.
+"""
+try:
+    client = ArangoClient(hosts="http://localhost:8529")
+    db = client.db("_system", username="root", password="")
+    arango_graph = ArangoGraph(db)
+except Exception as e:
+    raise ConnectionError(f"Failed to connect to ArangoDB: {e}")
+
+
+# =====================================
+#  Initialize Groq Client for LLM-based Processing
+# =====================================
+"""
+This section initializes the Groq client, which is used for natural language processing
+and generating AQL queries from user input.
+"""
+groq_api_key = os.environ.get("GROQ_API_KEY")
+if not groq_api_key:
+    raise ValueError("GROQ_API_KEY is not set in environment variables.")
+
+llm_client = Groq(api_key=groq_api_key)
+
+
+# =====================================
+#  Tool 1: Convert Query → AQL → Execute → Return Result
+# =====================================
+"""
+This function converts a natural language query into an AQL query, executes it,
+and returns the result in human-readable text.
+"""
+def text_to_aql_to_text(query: str) -> str:
+    try:
+        llm = ChatGroq(temperature=0, model_name="qwen-2.5-32b")
+        chain = ArangoGraphQAChain.from_llm(
+            llm=llm,
+            graph=arango_graph,
+            verbose=True,
+            allow_dangerous_requests=True,
+        )
+        result = chain.invoke(query)
+        return str(result.get("result", "No result found"))
+    except Exception as e:
+        return f"Error processing query: {e}"
+
+
+# =====================================
+#  Tool 2: Convert Query → AQL → Graph → Visualize
+# =====================================
+"""
+This function processes a natural language query, extracts relevant data,
+builds a NetworkX graph, and generates a visualization.
+"""
+def text_to_aql_to_nxalgorithm(query: str) -> Optional[str]:
+    try:
+        # Generate AQL and fetch data
+        llm = ChatGroq(temperature=0, model_name="qwen-2.5-32b")
+        chain = ArangoGraphQAChain.from_llm(
+            llm=llm,
+            graph=arango_graph,
+            verbose=True,
+            allow_dangerous_requests=True,
+        )
+        result = chain.invoke(query)
+        result_text = str(result.get("result", ""))
+
+        # Use LLM to generate NetworkX visualization code
+        chat_completion = client.chat.completions.create(
                 model="qwen-2.5-coder-32b",
                 messages=[
                     {  
@@ -215,54 +258,80 @@ def text_to_aql_to_nxalgorithm(query: str):
             )
     
 
-    
-    text_to_nx = chat_completion.choices[0].message.content
-    pattern = r"python\s*(.*?)\s*"
-    match = re.search(pattern, text_to_nx, re.DOTALL)
+        # Extract and clean generated Python code
+        generated_code = chat_completion.choices[0].message.content
+        match = re.search(r"python\s*(.?)\s", generated_code, re.DOTALL)
+        return match.group(1).strip() if match else None
 
-    if match:
-        text_to_nx_cleaned = match.group(1).strip()
-        print(text_to_nx_cleaned)  # Output only the extracted code
-    else:
-        print("No match found")
+    except Exception as e:
+        return f"Error generating visualization: {e}"
 
-    return text_to_nx_cleaned
 
-# Define tools list
-tools = [text_to_aql_to_text, text_to_aql_to_nxalgorithm]
+# =====================================
+#  Query Handling Function
+# =====================================
+"""
+This function determines the appropriate tool based on the query type:
+  - If the query requests visualization, use text_to_aql_to_nxalgorithm
+  - Otherwise, use text_to_aql_to_text
+"""
+def query_graph(query: str) -> str:
+    return text_to_aql_to_nxalgorithm(query) if any(
+        keyword in query.lower() for keyword in ["visualize", "show"]
+    ) else text_to_aql_to_text(query)
 
-# Query handler function
-def query_graph(query):
-    """Handles user queries and selects the appropriate tool."""
-    if "visualize" in query.lower() or "show" in query.lower():
-        tool = text_to_aql_to_nxalgorithm
 
-    else:
-        tool = text_to_aql_to_text
+# =====================================
+#  Flask Routes
+# =====================================
+"""
+This section defines the Flask routes for handling user requests:
+  - /: Renders the homepage with an input form.
+  - /query: Handles text-based queries and displays the result.
+  - /visualize: Handles visualization queries and displays the plot.
+"""
 
-    result = tool.invoke(query)
-    return result
-
-# Flask Routes
 @app.route("/")
-def home():
+def home() -> str:
+    """Renders the homepage with an input form."""
     return render_template("index.html")
 
+
 @app.route("/query", methods=["POST"])
-def handle_query():
+def handle_query() -> str:
+    """
+    Handles text-based queries, processes them,
+    and displays the result.
+    """
     user_query = request.form["query"]
-    tool = text_to_aql_to_text
-    result=tool.invoke(user_query)
-    return render_template("index.html",result=result)
+    result = text_to_aql_to_text(user_query)
+    return render_template("index.html", result=result)
 
-@app.route("/visualize",methods=["POST"])
-def visualize_query():
-    u_query = request.form["query"]
-    tool = text_to_aql_to_nxalgorithm
-    result=tool.invoke(u_query)
-    exec(textwrap.dedent(result))
-    return render_template("index.html",plot="static/plot.png")
 
-# Run the Flask app
+@app.route("/visualize", methods=["POST"])
+def visualize_query() -> str:
+    """
+    Handles visualization queries, generates a graph,
+    and displays the plot.
+    """
+    user_query = request.form["query"]
+    result_code = text_to_aql_to_nxalgorithm(user_query)
+
+    if result_code:
+        try:
+            exec(textwrap.dedent(result_code))  # Execute the generated visualization code
+        except Exception as e:
+            return render_template("index.html", error=f"Error executing visualization code: {e}")
+
+    return render_template("index.html", plot="static/plot.png")
+
+
+# =====================================
+#  Run Flask Application
+# =====================================
+"""
+This section runs the Flask application when the script is executed.
+"""
 if __name__ == "__main__":
     app.run(debug=False)
+
