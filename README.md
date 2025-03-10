@@ -4,9 +4,10 @@
 
 The Below Video provides the ove view of our application along with Graph Visuvalization
 
+## Watch the Demo 🎥
 
+[![Demo Video](https://img.youtube.com/vi/p1tIBuhuVCw/0.jpg)](https://www.youtube.com/watch?v=p1tIBuhuVCw)
 
-https://github.com/user-attachments/assets/a8729fe8-3f9c-4880-a829-ceab26a14228
 
 
 
