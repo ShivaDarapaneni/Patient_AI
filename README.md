@@ -1,6 +1,6 @@
 # README.md
 
-## <span style="color:red">Disclaimer ⚠️ </span> 
+## <span style="color:red">*** Disclaimer ⚠️ </span> 
 
 1. <span style="color:blue">Earlier, we committed our changes in a branch. Now, we have merged them into the **main** branch. Please **note the timestamps** accordingly.</span>  
 2. <span style="color:blue">As the previous YouTube video link was not working, we have **embedded the updated video link** below for reference.</span>  
