@@ -80,6 +80,12 @@ Before running the application, ensure you have the following installed:
    db = clien.db('_system', username='root', password='')
    ```
 
+
+## ARCHITECTECTURE OF JUPYTER TECHNICAL FLOW DIAGRAM
+
+   ![image](https://github.com/user-attachments/assets/a73e5004-2ead-4ca4-8a03-4a0260934346)
+
+
 ## Running the Application
 
 1. **Start the Flask Application**:
