@@ -1,14 +1,14 @@
 # README.md
 
-## ⚠️ **Disclaimer**  
+⚠️ ## Disclaimer
 
-1. 🔵 **Earlier, we committed our changes in a branch. Now, we have merged them into the _main_ branch. Please _note the timestamps_ accordingly.**    
-2. 🔵 **As the previous YouTube video link was not working, we have _embedded the updated video link_ below for reference.**  
+🔵 * Earlier, we committed our changes in a branch. Now, we have merged them into the main branch. Please note the timestamps accordingly.
+🔵 * As the previous YouTube video link was not working, we have embedded the updated video link below for reference.
 
 
-## Vedio Reference for Patient_AI
+## Video Reference for Patient_AI
 
-The Below Video provides the ove view of our application along with Graph Visuvalization
+The video below provides an overview of our application along with graph visualization.
 
 ## Watch the Demo 🎥
 
@@ -18,9 +18,9 @@ The Below Video provides the ove view of our application along with Graph Visuva
 
 
 
-## Project Overview
+## Overview of the Project
 
-This project is a Flask-based web application that integrates with ArangoDB, LangChain, and GROQ to provide a powerful interface for querying and visualizing graph data. The application allows users to input natural language queries, which are then translated into ArangoDB Query Language (AQL) using LangChain. The results can be visualized using NetworkX and Matplotlib, and the visualizations are rendered in the web interface.
+This project is a web application built using Flask that combines ArangoDB, LangChain, and GROQ to offer a robust interface for graph data visualization and querying. Users can enter queries in plain language using the application, and LangChain will convert them into ArangoDB Query Language (AQL). NetworkX and Matplotlib can be used to visualize the results, and the web interface renders the visualizations.
 
 ## Features
 
@@ -42,7 +42,7 @@ This project is a Flask-based web application that integrates with ArangoDB, Lan
 
 ## Prerequisites
 
-Before running the application, ensure you have the following installed:
+Before running the application, ensure you have the following:
 
 - Python 3.8 or higher
 - ArangoDB (running locally or accessible via a network)
